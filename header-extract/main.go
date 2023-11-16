@@ -3,21 +3,25 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
 )
 
+const plugin_module = "header_extraction"
+
 func main() {
-	sdk.Warn("header extraction plugin loaded")
-	sdk.SetParser(&HeaderParser{
-		port_whilelist: []uint16{14317, 14318}, // only parse 14317 and 14318 port data now
-	})
+	sdk.Warn(fmt.Sprintf("%s loaded", plugin_module))
+	cfg := &Config{}
+	cfg.init("/etc/deepflow-agent/header.yaml")
+	sdk.SetParser(&HeaderParser{cfg: cfg})
 }
 
 type HeaderParser struct {
-	port_whilelist []uint16
+	cfg *Config
 }
 
 func (p *HeaderParser) HookIn() []sdk.HookBitmap {
@@ -28,8 +32,12 @@ func (p *HeaderParser) HookIn() []sdk.HookBitmap {
 
 func (p *HeaderParser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
 	baseCtx := ctx.BaseCtx
-	for po := range p.port_whilelist {
-		if baseCtx.DstPort != p.port_whilelist[po] {
+	if !p.cfg.allowCapturePort(baseCtx.DstPort) {
+		return sdk.ActionNext()
+	}
+
+	for _, v := range p.cfg.ProcName {
+		if m, err := regexp.Match(v, []byte(baseCtx.ProcName)); err != nil || !m {
 			return sdk.ActionNext()
 		}
 	}
