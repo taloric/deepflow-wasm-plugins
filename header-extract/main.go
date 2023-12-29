@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/deepflowio/deepflow-wasm-go-sdk/sdk"
+	_ "github.com/wasilibs/nottinygc"
 )
 
 const plugin_module = "header_extraction"
@@ -23,6 +24,8 @@ func main() {
 type HeaderParser struct {
 	cfg *Config
 }
+
+var _ sdk.Parser = (*HeaderParser)(nil)
 
 func (p *HeaderParser) HookIn() []sdk.HookBitmap {
 	return []sdk.HookBitmap{
