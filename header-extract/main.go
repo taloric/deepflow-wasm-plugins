@@ -47,12 +47,14 @@ func (p *HeaderParser) OnHttpReq(ctx *sdk.HttpReqCtx) sdk.Action {
 
 	payload, err := baseCtx.GetPayload()
 	if err != nil {
-		return sdk.ActionAbortWithErr(err)
+		sdk.Error("%s parse payload error: %s", plugin_module, err)
+		return sdk.ActionNext()
 	}
 
 	req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(payload)))
 	if err != nil {
-		return sdk.ActionAbortWithErr(err)
+		sdk.Error("%s read request error: %s", plugin_module, err)
+		return sdk.ActionNext()
 	}
 	headers := req.Header.Clone()
 	attrs := make([]sdk.KeyVal, 0, len(headers))
@@ -75,7 +77,7 @@ func (p *HeaderParser) OnHttpResp(ctx *sdk.HttpRespCtx) sdk.Action {
 func (p *HeaderParser) OnCheckPayload(ctx *sdk.ParseCtx) (uint8, string) {
 	// 这里是协议判断的逻辑， 返回 0 表示失败
 	// return 0, ""
-	return 1, "some protocol"
+	return 1, "HTTP"
 }
 
 func (p *HeaderParser) OnParsePayload(ctx *sdk.ParseCtx) sdk.Action {

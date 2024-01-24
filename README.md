@@ -17,7 +17,6 @@ deepflow-ctl plugin create --type wasm --image header.wasm --name header-extract
 
 - update deepflow-agent config
 ```yaml
-static_config:
-  wasm-plugins:
-  - header-extract-plugin
+wasm_plugins:
+- header-extract-plugin
 ```
